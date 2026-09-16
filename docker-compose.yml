@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: ./mern-demo/server
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=mongodb+srv://lehoangdanh:Danh10112005@235087-lehoangdanh.sptpohy.mongodb.net/cloud_lab?retryWrites=true&w=majority
+    networks:
+      - mern-net
+
+  frontend:
+    build: ./mern-demo/client
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - mern-net
+
+networks:
+  mern-net:
+    driver: bridge

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 
 // Khai báo biến URL của Backend trên GitHub Codespaces
-const API_URL = 'https://expert-chainsaw-4jp6x675p4j5hq5wp-5000.app.github.dev/api/students';
+const API_URL = 'http://localhost:5000/api/students';
 
 function App() {
   const [students, setStudents] = useState([]);
