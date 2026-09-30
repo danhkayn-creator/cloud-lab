@@ -1,6 +1,8 @@
+version: '3.8'
+
 services:
   backend:
-    build: ./mern-demo/server
+    image: danhkay2005/mern-backend:1.0
     ports:
       - "5000:5000"
     environment:
@@ -9,16 +11,14 @@ services:
       - mern-net
 
   frontend:
-    build: ./mern-demo/client
+    image: danhkay2005/mern-frontend:1.0
     ports:
       - "3000:80"
     depends_on:
       - backend
     networks:
-      - mern-netc
+      - mern-net
 
 networks:
   mern-net:
-    driver: bridge
-  mern-netc:
     driver: bridge
