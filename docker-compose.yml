@@ -15,10 +15,8 @@ services:
     depends_on:
       - backend
     networks:
-      - mern-netc
+      - mern-net
 
 networks:
   mern-net:
-    driver: bridge
-  mern-netc:
     driver: bridge

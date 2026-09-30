@@ -11,7 +11,7 @@ services:
       - mern-net
 
   frontend:
-    image: danhkay2005/mern-frontend:1.0
+    image: danhkay2005/mern-frontend:2.0
     ports:
       - "3000:80"
     depends_on:
