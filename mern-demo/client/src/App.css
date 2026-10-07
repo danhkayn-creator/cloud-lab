@@ -1,15 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
 
 :root {
+  color-scheme: light; /* luôn dùng giao diện sáng, tránh bị chuyển sang dark mode */
   --bg: #eef1f6;
   --surface: #ffffff;
-  --text: #1b2233;
-  --muted: #667085;
-  --border: #dde2ec;
+  --text: #141a29;
+  --muted: #4b5567;
+  --border: #cfd6e4;
   --primary: #3346c4;
   --primary-hover: #2937a0;
   --primary-soft: #e8ebfb;
-  --danger: #c23a3a;
+  --danger: #b42323;
   --danger-soft: #fbeaea;
   --success: #1f7a52;
   --radius: 12px;
@@ -19,19 +20,44 @@
   box-sizing: border-box;
 }
 
+/* Ghi đè các style mặc định của Vite (index.css) */
+html,
 body {
   margin: 0;
+  padding: 0;
   background: var(--bg);
   color: var(--text);
+}
+
+body {
+  display: block;
+  min-width: 320px;
   font-family: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
   font-size: 15px;
   line-height: 1.5;
+}
+
+#root {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
 }
 
 .app {
   max-width: 1000px;
   margin: 0 auto;
   padding: 40px 20px 60px;
+  color: var(--text);
+}
+
+h1,
+h2,
+p,
+span,
+strong,
+label {
+  color: inherit;
 }
 
 /* Tiêu đề */
@@ -43,7 +69,9 @@ body {
   margin: 0 0 4px;
   font-size: 28px;
   font-weight: 700;
+  line-height: 1.25;
   letter-spacing: -0.01em;
+  color: var(--text);
 }
 
 .app-header p {
@@ -61,6 +89,7 @@ body {
 
 .panel {
   background: var(--surface);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
@@ -70,14 +99,23 @@ body {
   margin: 0 0 18px;
   font-size: 17px;
   font-weight: 600;
+  line-height: 1.3;
   display: flex;
   align-items: center;
   gap: 10px;
+  color: var(--text);
 }
 
 .form-panel {
   position: sticky;
   top: 24px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* Form đang ở chế độ sửa */
+.form-panel.is-editing {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 /* Form */
@@ -104,14 +142,15 @@ input {
   padding: 10px 12px;
   font: inherit;
   color: var(--text);
-  background: var(--surface);
+  background: #fff;
   border: 1px solid var(--border);
   border-radius: 8px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 input::placeholder {
-  color: #a3abbb;
+  color: #7d8799;
+  opacity: 1;
 }
 
 input:focus-visible {
@@ -135,6 +174,20 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.form-actions .btn-primary {
+  flex: 1;
+}
+
 .btn-primary {
   padding: 11px 16px;
   background: var(--primary);
@@ -145,15 +198,33 @@ input:focus-visible {
   background: var(--primary-hover);
 }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.btn-secondary {
+  padding: 11px 16px;
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
+.btn-secondary:hover {
+  background: var(--bg);
+}
+
+.btn-ghost,
 .btn-danger {
   padding: 6px 12px;
   font-size: 13px;
   background: transparent;
+}
+
+.btn-ghost {
+  color: var(--primary);
+}
+
+.btn-ghost:hover {
+  background: var(--primary-soft);
+}
+
+.btn-danger {
   color: var(--danger);
 }
 
@@ -198,12 +269,20 @@ input:focus-visible {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 0;
+  padding: 14px 8px;
+  margin: 0 -8px;
   border-bottom: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 .student:last-child {
-  border-bottom: none;
+  border-bottom-color: transparent;
+}
+
+/* Dòng đang được sửa */
+.student.is-editing {
+  background: var(--primary-soft);
+  border-bottom-color: transparent;
 }
 
 .avatar {
@@ -219,6 +298,10 @@ input:focus-visible {
   border-radius: 50%;
 }
 
+.student.is-editing .avatar {
+  background: #fff;
+}
+
 .student-info {
   flex: 1;
   min-width: 0;
@@ -228,6 +311,7 @@ input:focus-visible {
 
 .student-name {
   font-weight: 600;
+  color: var(--text);
 }
 
 .student-meta {
@@ -243,8 +327,19 @@ input:focus-visible {
   padding: 3px 10px;
   font-size: 13px;
   font-weight: 500;
+  color: var(--text);
   background: var(--bg);
   border-radius: 6px;
+}
+
+.student.is-editing .student-id {
+  background: #fff;
+}
+
+.actions {
+  flex: none;
+  display: flex;
+  gap: 2px;
 }
 
 /* Trạng thái rỗng */
@@ -262,6 +357,7 @@ input:focus-visible {
 
 .empty p {
   margin: 0;
+  color: var(--muted);
 }
 
 /* Thông báo */
@@ -274,7 +370,7 @@ input:focus-visible {
   font-weight: 500;
   color: #fff;
   border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(27, 34, 51, 0.18);
+  box-shadow: 0 8px 24px rgba(20, 26, 41, 0.22);
 }
 
 .toast-success {
@@ -312,5 +408,10 @@ input:focus-visible {
 
   .student-id {
     order: 3;
+  }
+
+  .actions {
+    order: 4;
+    margin-left: auto;
   }
 }

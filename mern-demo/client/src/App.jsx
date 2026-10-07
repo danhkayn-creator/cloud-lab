@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import './App.css';
 
 // URL của Backend (đổi sang URL Codespaces nếu chạy trên GitHub Codespaces)
-const API_URL = 'http://localhost:5000/api/students';
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/students`;
 
 const EMPTY_FORM = { studentId: '', name: '', email: '' };
 
@@ -18,10 +18,13 @@ const getInitials = (name = '') => {
 function App() {
   const [students, setStudents] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [editingId, setEditingId] = useState(null); // _id của sinh viên đang sửa
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null); // { type: 'success' | 'error', text }
+
+  const isEditing = editingId !== null;
 
   const showToast = (type, text) => {
     setToast({ type, text });
@@ -46,23 +49,44 @@ function App() {
     fetchStudents();
   }, []);
 
-  // Thêm sinh viên mới
+  // Bắt đầu sửa: đưa dữ liệu của sinh viên lên form
+  const startEdit = (student) => {
+    setEditingId(student._id);
+    setForm({
+      studentId: student.studentId,
+      name: student.name,
+      email: student.email,
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+  };
+
+  // Thêm mới hoặc lưu thay đổi
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
+      const res = await fetch(isEditing ? `${API_URL}/${editingId}` : API_URL, {
+        method: isEditing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
 
       if (res.ok) {
-        setForm(EMPTY_FORM);
-        showToast('success', 'Đã thêm sinh viên.');
+        showToast('success', isEditing ? 'Đã lưu thay đổi.' : 'Đã thêm sinh viên.');
+        cancelEdit();
         fetchStudents();
       } else {
-        showToast('error', 'Không thêm được sinh viên. MSSV có thể đã tồn tại.');
+        showToast(
+          'error',
+          isEditing
+            ? 'Không lưu được thay đổi. MSSV có thể trùng với sinh viên khác.'
+            : 'Không thêm được sinh viên. MSSV có thể đã tồn tại.'
+        );
       }
     } catch (err) {
       console.error('Lỗi kết nối:', err);
@@ -77,6 +101,7 @@ function App() {
     if (!window.confirm(`Xóa sinh viên ${student.name}?`)) return;
     try {
       await fetch(`${API_URL}/${student._id}`, { method: 'DELETE' });
+      if (editingId === student._id) cancelEdit();
       showToast('success', 'Đã xóa sinh viên.');
       fetchStudents();
     } catch (err) {
@@ -103,13 +128,13 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>Quản lý sinh viên</h1>
-        <p>Thêm, tìm kiếm và xóa sinh viên trong danh sách lớp.</p>
+        <p>Thêm, sửa, tìm kiếm và xóa sinh viên trong danh sách lớp.</p>
       </header>
 
       <main className="layout">
-        {/* Form thêm sinh viên */}
-        <section className="panel form-panel">
-          <h2>Thêm sinh viên</h2>
+        {/* Form thêm / sửa sinh viên */}
+        <section className={`panel form-panel ${isEditing ? 'is-editing' : ''}`}>
+          <h2>{isEditing ? 'Sửa thông tin sinh viên' : 'Thêm sinh viên'}</h2>
           <form onSubmit={handleSubmit} className="form">
             <label className="field">
               <span>Mã số sinh viên</span>
@@ -142,9 +167,20 @@ function App() {
               />
             </label>
 
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? 'Đang thêm...' : 'Thêm sinh viên'}
-            </button>
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary" disabled={submitting}>
+                {submitting
+                  ? 'Đang lưu...'
+                  : isEditing
+                  ? 'Lưu thay đổi'
+                  : 'Thêm sinh viên'}
+              </button>
+              {isEditing && (
+                <button type="button" className="btn btn-secondary" onClick={cancelEdit}>
+                  Hủy
+                </button>
+              )}
+            </div>
           </form>
         </section>
 
@@ -180,7 +216,10 @@ function App() {
           ) : (
             <ul className="student-list">
               {filtered.map((s) => (
-                <li key={s._id} className="student">
+                <li
+                  key={s._id}
+                  className={`student ${editingId === s._id ? 'is-editing' : ''}`}
+                >
                   <div className="avatar" aria-hidden="true">
                     {getInitials(s.name)}
                   </div>
@@ -189,13 +228,22 @@ function App() {
                     <span className="student-meta">{s.email}</span>
                   </div>
                   <span className="student-id">{s.studentId}</span>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => handleDelete(s)}
-                    aria-label={`Xóa ${s.name}`}
-                  >
-                    Xóa
-                  </button>
+                  <div className="actions">
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => startEdit(s)}
+                      aria-label={`Sửa ${s.name}`}
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleDelete(s)}
+                      aria-label={`Xóa ${s.name}`}
+                    >
+                      Xóa
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
